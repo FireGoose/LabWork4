@@ -38,7 +38,7 @@ public:
     virtual void Read(const char* path = "./data.txt");
 
     void PrintSystem(TVector<double> &consts);
-    void Gauss(TVector<double> &consts);
+    TVector<double> Gauss(TVector<double> &consts);
 
     int ElementCount(const T el);
     TMatrix Positions(const T el);
@@ -319,78 +319,68 @@ inline void TMatrix<T>::PrintSystem(TVector<double> &consts)
 }
 
 template <class T>
-inline void TMatrix<T>::Gauss(TVector<double> &consts)
+inline TVector<double> TMatrix<T>::Gauss(TVector<double> &consts)
 {
-    int n = consts.GetLen();
-    TVector<double> x(n);
+    int n = GetRows();
+    TVector<double> ans(n);
     double max;
-    int index;
-    const double accuracy = pow(10,-10);
-    double temp;
-    int k = 0;
+    int k, index;
+    const double eps = 10e-6;
+    k = 0;
     while (k < n)
     {
-        max = abs((*this)[k][k]);
+        max = std::abs((*this)[k][k]);
         index = k;
-        for (int i = k + 1; i < n; i++) if (abs((*this)[i][k]) > max)
+        for (int i = k + 1; i < n; i++)
+            if (std::abs((*this)[i][k]) > max)
             {
-                max = abs((*this)[i][k]);
+                max = std::abs((*this)[i][k]);
                 index = i;
             }
-
-        if (max < accuracy)
+        
+        if (max < eps)
         {
-            throw("Zero column");
+            std::cout << "Решение получить невозможно из-за нулевого столбца ";
+            std::cout << index << " матрицы A" << std::endl;
+            return TVector<double>();
         }
 
+        double temp;
         for (int j = 0; j < n; j++)
         {
             temp = (*this)[k][j];
             (*this)[k][j] = (*this)[index][j];
             (*this)[index][j] = temp;
         }
-
+        // то же самое для вектора значений с другой стороны равенства:
         temp = consts[k];
         consts[k] = consts[index];
         consts[index] = temp;
 
+        // Нормализация уравнений
         for (int i = k; i < n; i++)
         {
             temp = (*this)[i][k];
-            if (abs(temp) < accuracy)
-                continue;
-            for (int j = k; j < n; j++) (*this)[i][j] /= temp;
+            if (std::abs(temp) < eps) continue; // для нулевого коэффициента пропустить
+            for (int j = k; j < n; j++)
+                (*this)[i][j] /= temp;
             consts[i] /= temp;
-            if (i == k)
-                continue;
-            for (int j = 0; j < n; j++) (*this)[i][j] -= (*this)[k][j];
+            if (i == k)  continue; // уравнение не вычитать само из себя
+            for (int j = 0; j < n; j++)
+                (*this)[i][j] -= (*this)[k][j];
             consts[i] -= consts[k];
         }
         k++;
     }
 
+    // обратная подстановка
     for (k = n - 1; k > -1; k--)
     {
-        x[k] = consts[k];
+        ans[k] = consts[k];
         for (int i = 0; i < k; i++)
-            consts[i] -= (*this)[i][k] * x[k];
+            consts[i] -= (*this)[i][k] * ans[k];
     }
-
-    for (k = n - 1; k >= 0; k--)
-    {
-        for (int i = 0; i < k; i++)
-        {
-            double factor = (*this)[i][k];
-            x[i] -= factor * x[k];
-            (*this)[i][k] = 0.0;
-        }
-    }
-
-    for (int i = 0; i < n; i++) {
-        consts[i] = x[i];
-    }
-
-    (*this).PrintSystem(consts);
+    return ans;
 }
 
 

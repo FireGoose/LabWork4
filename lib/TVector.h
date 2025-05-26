@@ -47,7 +47,7 @@ public:
     template <class T1>
     friend istream& operator>>(istream& i, TVector<T1>& p);
 
-    void BubbleSort(); // Доп задание 1
+    void BubbleSort();
     void QuickSort();
     void InsertionSort();
     int Partition(int low, int high);
@@ -225,7 +225,8 @@ inline TVector<T> TVector<T>::operator*(const T& mul)
 }
 
 template <class T>
-inline TVector<T> TVector<T>::operator/(const TVector<T>& div) const {
+inline TVector<T> TVector<T>::operator/(const TVector<T>& div) const
+{
     if (len != div.len)
     {
         throw invalid_argument("Length error");

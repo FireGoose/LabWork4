@@ -243,11 +243,15 @@ TEST(TMatrixTest, PositionsMethod)
 TEST(TMatrixTest, GaussSolving)
 {
     TMatrix<double> a(2, 2);
-    a[0][0] = 8; a[0][1] = 0;
-    a[1][0] = 5; a[1][1] = 0;
+    a[0][0] = 1; a[0][1] = 2;
+    a[1][0] = 3; a[1][1] = 4;
     TVector<double> consts(2);
-    consts[0] = 5; consts[1] = 7;
-    EXPECT_THROW(a.Gauss(consts), const char*);
+    consts[0] = 3; consts[1] = 7;
+    TVector<double> exp(2);
+    exp[0] = 1; exp[1] = 1;
+    TVector<double> ans = a.Gauss(consts);
+    EXPECT_NEAR(ans[0], 1, 1e-4);
+    EXPECT_NEAR(ans[1], 1, 1e-4);
 }
 
 TEST(TVectorTest, DefaultConstructor) {
@@ -280,10 +284,9 @@ TEST(TVectorTest, MoveConstructor) {
     EXPECT_EQ(moved[0], 1);
     EXPECT_EQ(moved[1], 2);
     EXPECT_EQ(moved[2], 3);
-    EXPECT_EQ(original.GetLen(), 0); // После перемещения оригинал пуст
+    EXPECT_EQ(original.GetLen(), 0);
 }
 
-// Тесты для операторов
 TEST(TVectorTest, AdditionOperator) {
     TVector<int> a(2);
     a[0] = 1; a[1] = 2;
